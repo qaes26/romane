@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>قيس ❤️ رهف | قمر حياتي</title>
+    <meta name="description" content="موقع رومانسي فضائي مخصص لعرض ذكريات الحب بين قيس ورهف">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            overflow: hidden;
+            background: #010103;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+            color: #fff;
+        }
+
+        #three-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+        }
+
+        /* ===== LOADING ===== */
+        #loading-screen {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, #0a0a16 0%, #010103 100%);
+            z-index: 9999;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            transition: opacity 1.5s ease, visibility 1.5s ease;
+        }
+        #loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .load-planet {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffc8dd 0%, #bde0fe 100%);
+            box-shadow: 0 0 30px rgba(255, 200, 221, 0.5);
+            animation: pulseMoon 2s infinite ease-in-out;
+            position: relative;
+        }
+        .load-planet::after {
+            content: '';
+            position: absolute;
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 200, 221, 0.3);
+            animation: orbit 3s linear infinite;
+        }
+        @keyframes orbit {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); border-color: rgba(189, 224, 254, 0.5); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        @keyframes pulseMoon {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(255, 200, 221, 0.5); }
+            50% { transform: scale(1.1); box-shadow: 0 0 50px rgba(255, 200, 221, 0.8); }
+        }
+
+        .load-text {
+            font-family: 'Amiri', serif; font-size: 24px;
+            color: rgba(255,240,245,0.9); margin-top: 35px;
+            letter-spacing: 2px;
+            animation: fadeGlow 2s ease-in-out infinite;
+        }
+        .progress-bar {
+            width: 200px; height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-top: 20px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, #ffc8dd, #bde0fe);
+            transition: width 0.3s;
+        }
+
+        /* ===== ENTER SCREEN ===== */
+        #enter-screen {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, transparent 0%, #010103 100%);
+            z-index: 9998;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: opacity 1.5s ease, visibility 1.5s ease;
+        }
+        #enter-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .enter-names {
+            font-family: 'Amiri', serif; font-size: 64px;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px #ffc8dd;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        .enter-sub {
+            font-size: 20px; color: rgba(255,255,255,0.7);
+            letter-spacing: 6px; margin-bottom: 70px;
+        }
+        .enter-circle {
+            width: 110px; height: 110px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(8px);
+        }
+        .enter-circle::before {
+            content: ''; position: absolute; inset: -20px;
+            background: radial-gradient(circle, rgba(255,200,221,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            animation: pulseGlow 3s infinite;
+        }
+        .enter-circle::after {
+            content: ''; position: absolute; inset: -2px;
+            border: 2px solid transparent;
+            border-top-color: #ffc8dd;
+            border-bottom-color: #bde0fe;
+            border-radius: 50%;
+            animation: spin 4s linear infinite;
+        }
+        @keyframes pulseGlow { 50% { transform: scale(1.2); opacity: 0.5; } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        .enter-circle:hover {
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 40px rgba(255,200,221,0.4);
+            transform: scale(1.1);
+        }
+        .enter-circle span {
+            font-size: 18px; color: #fff; letter-spacing: 3px;
+        }
+
+        /* ===== UI OVERLAY ===== */
+        #ui-layer {
+            position: fixed; inset: 0; z-index: 10;
+            pointer-events: none;
+            opacity: 0; transition: opacity 2s ease;
+            display: flex; flex-direction: column;
+            justify-content: space-between;
+        }
+        #ui-layer.visible { opacity: 1; }
+
+        .header {
+            padding: 40px 50px;
+            text-align: right;
+            background: linear-gradient(180deg, rgba(1,1,3,0.9) 0%, transparent 100%);
+        }
+        .header h1 {
+            font-family: 'Amiri', serif; font-size: 36px;
+            color: #fff; text-shadow: 0 0 25px rgba(255, 200, 221, 0.8);
+        }
+
+        /* Romantic Text Area */
+        .romantic-text-container {
+            position: absolute;
+            top: 50%; right: 12%;
+            transform: translateY(-50%);
+            max-width: 450px;
+            text-align: right;
+        }
+        @media (max-width: 768px) {
+            .romantic-text-container {
+                position: absolute;
+                top: auto;
+                bottom: 15vh;
+                right: 0;
+                left: 0;
+                transform: none;
+                max-width: 100%;
+                text-align: center;
+                padding: 0 20px;
+            }
+        }
+        
+        .main-quote {
+            font-family: 'Amiri', serif;
+            font-size: 42px;
+            line-height: 1.4;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 40px rgba(255, 200, 221, 0.8);
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .sub-quote {
+            font-size: 20px;
+            color: rgba(255,255,255,0.8);
+            letter-spacing: 1px;
+            line-height: 1.6;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* Controls */
+        .controls-area {
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            background: linear-gradient(0deg, rgba(1,1,3,0.9) 0%, transparent 100%);
+            pointer-events: all;
+        }
+        .nav-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+            width: 55px; height: 55px;
+            border-radius: 50%;
+            font-size: 22px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #fff;
+            box-shadow: 0 0 25px rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+        
+        .music-btn {
+            background: rgba(255, 200, 221, 0.1);
+            border-color: rgba(255, 200, 221, 0.4);
+            width: 65px; height: 65px;
+            font-size: 26px;
+        }
+        .music-btn.playing {
+            box-shadow: 0 0 30px rgba(255, 200, 221, 0.6);
+            border-color: #ffc8dd;
+            background: rgba(255, 200, 221, 0.2);
+        }
+
+        .auto-btn {
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+            position: absolute;
+            right: 30px;
+            bottom: 45px;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            pointer-events: all;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .auto-btn:hover, .auto-btn.active { color: #bde0fe; }
+        .auto-indicator {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.3); transition: background 0.3s;
+        }
+        .auto-btn.active .auto-indicator {
+            background: #bde0fe; box-shadow: 0 0 10px #bde0fe;
+        }
+
+        .footer {
+            position: absolute; bottom: 10px; left: 0; right: 0;
+            text-align: center;
+            font-size: 12px; color: rgba(255,255,255,0.2);
+            letter-spacing: 3px;
+            pointer-events: none;
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 768px) {
+            .enter-names { font-size: 46px; }
+            .header { text-align: center; padding: 25px; }
+            .header h1 { font-size: 28px; }
+            .main-quote { font-size: 32px; }
+            .sub-quote { font-size: 16px; }
+            .controls-area { padding: 20px; gap: 15px; padding-bottom: 60px;}
+            .nav-btn { width: 50px; height: 50px; font-size: 20px; }
+            .music-btn { width: 60px; height: 60px; }
+            .auto-btn { right: auto; left: 50%; transform: translateX(-50%); bottom: 20px; }
+        }
+        
+        #media-container { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="media-container"></div>
+
+    <div id="loading-screen">
+        <div class="load-planet"></div>
+        <div class="load-text">... نُحلّق نحو الفضاء</div>
+        <div class="progress-bar"><div class="progress-fill" id="load-progress"></div></div>
+    </div>
+
+    <div id="enter-screen">
+        <div class="enter-names">قيس ❤️ رهف</div>
+        <div class="enter-sub">أنتِ قمري وسمائي</div>
+        <div class="enter-circle" id="enter-btn"><span>اكتشف</span></div>
+    </div>
+
+    <canvas id="three-canvas"></canvas>
+
+    <div id="ui-layer">
+        <div class="header">
+            <h1>قيس ❤️ رهف</h1>
+        </div>
+
+        <div class="romantic-text-container">
+            <div class="main-quote" id="main-quote">أنتِ قمري</div>
+            <div class="sub-quote" id="sub-quote">الذي يضيء عتمة أيامي بكل حب</div>
+        </div>
+
+        <div class="controls-area">
+            <button class="nav-btn" id="btn-next" title="التالي">▶</button>
+            <button class="nav-btn music-btn playing" id="btn-music" title="تشغيل / إيقاف">⏸</button>
+            <button class="nav-btn" id="btn-prev" title="السابق">◀</button>
+        </div>
+        
+        <button class="auto-btn active" id="btn-auto">
+            عضو تلقائي <div class="auto-indicator"></div>
+        </button>
+
+        <div class="footer">من إعداد قيس الجازي ❤️</div>
+    </div>
+
+    <script>
+    // =============================================
+    //   STARRY NIGHT & THE MOON - قيس ❤️ رهف
+    // =============================================
+
+    const MEDIA = [
+        { type:'image', src:'WhatsApp Image 2026-04-06 at 9.52.17 PM.jpeg', qMain:'دائماً معاً', qSub:'ويدي بيدكِ حتى نصل للنجوم ✨' },
+        { type:'video', src:'WhatsApp Video 2026-04-06 at 9.51.44 PM.mp4', qMain:'بسمتكِ حياة', qSub:'تشرق في قلبي وكأنها مجرة كاملة 🌌' },
+        { type:'video', src:'WhatsApp Video 2026-04-06 at 9.52.20 PM.mp4', qMain:'عيناكِ سمائي', qSub:'أضيع في تفاصيلها كل يوم 🌹' },
+        { type:'video', src:'WhatsApp Video 2026-04-06 at 9.52.21 PM.mp4', qMain:'نجمتي الساطعة', qSub:'التي لا تغيب عن سمائي أبداً 💫' },
+        { type:'video', src:'WhatsApp Video 2026-04-06 at 10.16.18 PM.mp4', qMain:'نبض قلبي', qSub:'يعزف لحناً لا يسمعه سواي 🌙' },
+        { type:'video', src:'WhatsApp Video 2026-04-06 at 10.16.19 PM.mp4', qMain:'قصة حبنا', qSub:'مكتوبة بأحرف من نور في السماء 💝' },
+        { type:'video', src:'WhatsApp Video 2026-04-06 at 10.16.19 PM (1).mp4', qMain:'أجمل أقداري', qSub:'وجودكِ بجانبي هو كل ما أتمنى 🌸' },
+        { type:'video', src:'WhatsApp Video 2026-04-06 at 10.16.19 PM (2).mp4', qMain:'كل كوني', qSub:'أنتِ العالم بما فيه بالنسبة لي 💎' },
+        { type:'video', src:'WhatsApp Video 2026-04-16 at 11.34.43 PM.mp4', qMain:'وجودك سحر', qSub:'يخطف قلبي في كل مرة أنظر إليكِ ✨' }, // New Video added here
+        { type:'video', src:'WhatsApp Video 2026-04-06 at 10.16.19 PM (3).mp4', qMain:'رهف قلبي', qSub:'أحبكِ اليوم، وغداً، وإلى الأبد 🌍' }
+    ];
+
+    // ---- STATE ----
+    let scene, camera, renderer, clock;
+    let moonMesh, glowMesh;
+    let starsGroups = []; // Multiple star groups for depth
+    let nebulas = [];
+    
+    let currentIndex = 0;
+    let textureLoader = new THREE.TextureLoader();
+    let mediaTextures = [];
+    let videoElements = [];
+    
+    let isPlaying = true; // Auto play state
+    let isAutoAdvance = true; // Auto next media
+    let entered = false;
+    let transitionTimeline = null;
+    let imageTimeout = null;
+
+    // ---- INITIALIZATION ----
+    function preloadMedia() {
+        let loadedCount = 0;
+        const total = MEDIA.length;
+        const container = document.getElementById('media-container');
+        const progressBar = document.getElementById('load-progress');
+
+        function checkLoad() {
+            loadedCount++;
+            let percent = (loadedCount / total) * 100;
+            progressBar.style.width = percent + '%';
+            
+            if (loadedCount === total) { 
+                setTimeout(() => {
+                    document.getElementById('loading-screen').classList.add('hidden');
+                }, 800);
+            }
+        }
+
+        MEDIA.forEach((item, i) => {
+            if (item.type === 'image') {
+                textureLoader.load(item.src, (texture) => {
+                    texture.colorSpace = THREE.SRGBColorSpace;
+                    mediaTextures[i] = texture;
+                    checkLoad();
+                }, undefined, () => checkLoad()); // count even on error
+            } else {
+                const vid = document.createElement('video');
+                vid.src = item.src;
+                vid.crossOrigin = "anonymous";
+                vid.loop = false; // We want to know when it ends
+                vid.muted = false; 
+                vid.playsInline = true;
+                
+                vid.addEventListener('loadeddata', () => checkLoad(), {once: true});
+                vid.addEventListener('error', () => checkLoad(), {once: true}); // count even on error
+                
+                // Auto advance logic
+                vid.addEventListener('ended', () => {
+                    if(isAutoAdvance) {
+                        goToNext();
+                    } else if (isPlaying) {
+                        vid.play(); // loop if autoadvance is off
+                    }
+                });
+
+                container.appendChild(vid);
+                videoElements[i] = vid;
+                
+                const vidTexture = new THREE.VideoTexture(vid);
+                vidTexture.colorSpace = THREE.SRGBColorSpace;
+                vidTexture.minFilter = THREE.LinearFilter;
+                vidTexture.magFilter = THREE.LinearFilter;
+                mediaTextures[i] = vidTexture;
+            }
+        });
+        
+        // Fallback safety timeout for loading
+        setTimeout(() => {
+            if(!document.getElementById('loading-screen').classList.contains('hidden')) {
+                document.getElementById('loading-screen').classList.add('hidden');
+            }
+        }, 8000);
+    }
+
+    // ---- ENTER ----
+    document.getElementById('enter-btn').addEventListener('click', () => {
+        document.getElementById('enter-screen').classList.add('hidden');
+        document.getElementById('ui-layer').classList.add('visible');
+        entered = true;
+        
+        // Start first media
+        updateMoon(0);
+    });
+
+    // ---- THREE.JS BACKGROUND SETUP ----
+    function createCircleTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 64; canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        ctx.beginPath();
+        ctx.arc(32, 32, 30, 0, Math.PI*2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        return new THREE.CanvasTexture(canvas);
+    }
+
+    function initThree() {
+        const canvas = document.getElementById('three-canvas');
+        // Add antialiasing for smoother edges
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x010103);
+        scene.fog = new THREE.FogExp2(0x010103, 0.002); // Subtle fog for depth
+        
+        clock = new THREE.Clock();
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 20);
+
+        buildRealisticSky();
+        buildMoon();
+        
+        window.addEventListener('resize', onResize);
+        animate();
+    }
+
+    function buildRealisticSky() {
+        const circleTex = createCircleTexture();
+        
+        // --- 1. Distant Nebula Clouds ---
+        const nebGeo = new THREE.PlaneGeometry(80, 80);
+        const nebCanvas = document.createElement('canvas');
+        nebCanvas.width = 256; nebCanvas.height = 256;
+        const ctx = nebCanvas.getContext('2d');
+        const grad = ctx.createRadialGradient(128,128,0,128,128,128);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+        grad.addColorStop(0.4, 'rgba(189, 224, 254, 0.05)');
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0,0,256,256);
+        const nebTex = new THREE.CanvasTexture(nebCanvas);
+        
+        for(let i=0; i<6; i++) {
+            const nebMat = new THREE.MeshBasicMaterial({
+                map: nebTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.4
+            });
+            const neb = new THREE.Mesh(nebGeo, nebMat);
+            neb.position.set((Math.random()-0.5)*100, (Math.random()-0.5)*80, -60 - Math.random()*40);
+            neb.rotation.z = Math.random() * Math.PI;
+            
+            // Randomize color slightly (pinkish or bluish)
+            if(Math.random() > 0.5) neb.material.color.setHex(0xffc8dd);
+            else neb.material.color.setHex(0xbde0fe);
+            
+            scene.add(neb);
+            nebulas.push({mesh: neb, speed: (Math.random() - 0.5) * 0.05});
+        }
+
+        // --- 2. Multiple Star Layers ---
+        // Layer 1: Tiny distant stars (lots of them, steady)
+        createStarLayer(3000, 0.1, -80, 0.8, 0xffffff, circleTex);
+        // Layer 2: Medium stars (bluish, slight movement)
+        createStarLayer(1000, 0.2, -50, 0.6, 0xbde0fe, circleTex);
+        // Layer 3: Larger, bright stars (pinkish, closer)
+        createStarLayer(300, 0.35, -30, 0.9, 0xffc8dd, circleTex);
+    }
+    
+    function createStarLayer(count, size, depth, maxOpacity, baseColor, texture) {
+        const geo = new THREE.BufferGeometry();
+        const posArray = new Float32Array(count * 3);
+        const opacities = new Float32Array(count); // For twinkling
+        
+        const c = new THREE.Color(baseColor);
+        
+        for(let i = 0; i < count; i++) {
+            posArray[i*3] = (Math.random() - 0.5) * 200;
+            posArray[i*3+1] = (Math.random() - 0.5) * 150;
+            posArray[i*3+2] = depth + (Math.random() - 0.5) * 20; // Spread around depth
+            
+            opacities[i] = Math.random(); 
+        }
+        
+        geo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        geo.setAttribute('aOpacity', new THREE.BufferAttribute(opacities, 1));
+        
+        // Custom shader for twinkling stars
+        const mat = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uColor: { value: c },
+                uTexture: { value: texture },
+                uSize: { value: size * window.devicePixelRatio * 50 }, // rough scaling
+                uMaxOpacity: { value: maxOpacity }
+            },
+            vertexShader: `
+                uniform float uTime;
+                uniform float uSize;
+                attribute float aOpacity;
+                varying float vOpacity;
+                void main() {
+                    // Twinkle effect based on time and individual offset (aOpacity)
+                    vOpacity = aOpacity + sin(uTime * 1.5 + aOpacity * 10.0) * 0.3;
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = uSize * (10.0 / -mvPosition.z); // Perspective scaling
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 uColor;
+                uniform sampler2D uTexture;
+                uniform float uMaxOpacity;
+                varying float vOpacity;
+                void main() {
+                    vec4 texColor = texture2D(uTexture, gl_PointCoord);
+                    // Soften edges
+                    if(texColor.a < 0.1) discard; 
+                    float finalAlpha = clamp(vOpacity, 0.1, uMaxOpacity) * texColor.a;
+                    gl_FragColor = vec4(uColor, finalAlpha);
+                }
+            `,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        
+        const points = new THREE.Points(geo, mat);
+        scene.add(points);
+        starsGroups.push({mesh: points, depth: depth});
+    }
+
+    function buildMoon() {
+        const isMobile = window.innerWidth <= 768;
+        const moonRadius = isMobile ? 3.5 : 5.5; // Slightly larger for better viewing
+        
+        // The Moon (Circle Geometry removes need for complex shader masking for flat plains)
+        const moonGeo = new THREE.CircleGeometry(moonRadius, 64);
+        
+        const moonMat = new THREE.MeshBasicMaterial({ 
+            color: 0x000000, 
+            side: THREE.DoubleSide
+        });
+        
+        moonMesh = new THREE.Mesh(moonGeo, moonMat);
+        moonMesh.position.x = isMobile ? 0 : -5.5;
+        moonMesh.position.y = isMobile ? 3 : 0;
+        scene.add(moonMesh);
+
+        // Glow behind the moon
+        const glowGeo = new THREE.PlaneGeometry(moonRadius * 3.5, moonRadius * 3.5);
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.15, 'rgba(255, 200, 221, 0.6)');
+        gradient.addColorStop(0.4, 'rgba(189, 224, 254, 0.2)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0,0,512,512);
+        
+        const glowTex = new THREE.CanvasTexture(canvas);
+        const glowMat = new THREE.MeshBasicMaterial({
+            map: glowTex,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        
+        glowMesh = new THREE.Mesh(glowGeo, glowMat);
+        glowMesh.position.copy(moonMesh.position);
+        glowMesh.position.z = -0.5;
+        scene.add(glowMesh);
+    }
+    
+    // ---- LOGIC ----
+    function updateText(qMain, qSub) {
+        const mQ = document.getElementById('main-quote');
+        const sQ = document.getElementById('sub-quote');
+        
+        if(transitionTimeline) transitionTimeline.kill();
+        
+        transitionTimeline = gsap.timeline();
+        
+        // Fade out
+        transitionTimeline.to([mQ, sQ], {
+            y: -20, opacity: 0, duration: 0.5, stagger: 0.1, ease: "power2.in"
+        });
+        
+        transitionTimeline.call(() => {
+            mQ.textContent = qMain;
+            sQ.textContent = qSub;
+        });
+        
+        transitionTimeline.fromTo([mQ, sQ], 
+            { y: 20, opacity: 0 },
+            { y: 0, opacity: 1, duration: 1, stagger: 0.2, ease: "power2.out" }
+        );
+    }
+
+    function updateMoon(index) {
+        // Clear old timeouts
+        if(imageTimeout) clearTimeout(imageTimeout);
+
+        // Pause current video
+        if (videoElements[currentIndex] && isPlaying) {
+            videoElements[currentIndex].pause();
+            videoElements[currentIndex].currentTime = 0;
+        }
+        
+        currentIndex = index;
+        const item = MEDIA[currentIndex];
+        
+        // Cinematic Transition
+        gsap.to(moonMesh.scale, {
+            x: 0, y: 0, duration: 0.5, ease: "power3.in",
+            onComplete: () => {
+                if(mediaTextures[currentIndex]) {
+                    moonMesh.material.map = mediaTextures[currentIndex];
+                    moonMesh.material.color.set(0xffffff);
+                    moonMesh.material.needsUpdate = true;
+                }
+                
+                if (isPlaying) {
+                    if (item.type === 'video' && videoElements[currentIndex]) {
+                        videoElements[currentIndex].play().catch(e => console.log("Auto-play prevented", e));
+                    } else if (item.type === 'image' && isAutoAdvance) {
+                        // Image auto-advance timer
+                        imageTimeout = setTimeout(goToNext, 6000); // 6 seconds for images
+                    }
+                }
+                
+                // Animate in
+                gsap.to(moonMesh.scale, {
+                    x: 1, y: 1, duration: 1.2, ease: "elastic.out(1, 0.6)"
+                });
+                
+                // Intense pulse on change
+                gsap.fromTo(glowMesh.scale, 
+                    {x: 0.3, y:0.3},
+                    {x: 1.1, y: 1.1, duration: 2, ease: "power2.out"}
+                );
+            }
+        });
+        
+        updateText(item.qMain, item.qSub);
+    }
+
+    function goToNext() {
+        let nxt = (currentIndex + 1) % MEDIA.length;
+        updateMoon(nxt);
+    }
+
+    function goToPrev() {
+        let prv = (currentIndex - 1 + MEDIA.length) % MEDIA.length;
+        updateMoon(prv);
+    }
+    
+    // ---- CONTROLS ----
+    document.getElementById('btn-next').addEventListener('click', () => {
+        // Stop auto timer temporarily when user interacts manually
+        if(imageTimeout) clearTimeout(imageTimeout);
+        goToNext();
+    });
+    
+    document.getElementById('btn-prev').addEventListener('click', () => {
+        if(imageTimeout) clearTimeout(imageTimeout);
+        goToPrev();
+    });
+    
+    document.getElementById('btn-music').addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        const btn = document.getElementById('btn-music');
+        
+        if (isPlaying) {
+            btn.classList.add('playing');
+            btn.innerHTML = '⏸';
+            const item = MEDIA[currentIndex];
+            if(item.type === 'video' && videoElements[currentIndex]) {
+                videoElements[currentIndex].play();
+            } else if (item.type === 'image' && isAutoAdvance) {
+                // resume image timer
+                imageTimeout = setTimeout(goToNext, 6000);
+            }
+        } else {
+            btn.classList.remove('playing');
+            btn.innerHTML = '♪';
+            if(imageTimeout) clearTimeout(imageTimeout);
+            videoElements.forEach(v => {
+                if(v) v.pause();
+            });
+        }
+    });
+
+    document.getElementById('btn-auto').addEventListener('click', () => {
+        isAutoAdvance = !isAutoAdvance;
+        const btn = document.getElementById('btn-auto');
+        if(isAutoAdvance) {
+            btn.classList.add('active');
+            const item = MEDIA[currentIndex];
+            // If we are on an image, start timer now
+            if (item.type === 'image' && isPlaying) {
+                imageTimeout = setTimeout(goToNext, 6000);
+            }
+            // If on video, it naturally advances via 'ended' event
+        } else {
+            btn.classList.remove('active');
+            if(imageTimeout) clearTimeout(imageTimeout);
+        }
+    });
+
+    // Touch Swiping logic
+    let touchStartX = 0;
+    window.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive: true});
+    window.addEventListener('touchend', (e) => {
+        if(!entered) return;
+        const touchEndX = e.changedTouches[0].clientX;
+        const diff = touchEndX - touchStartX;
+        
+        if (diff > 50) {
+            if(imageTimeout) clearTimeout(imageTimeout);
+            goToPrev();
+        } else if (diff < -50) {
+            if(imageTimeout) clearTimeout(imageTimeout);
+            goToNext();
+        }
+    }, {passive:true});
+
+    // ---- RENDER LOOP ----
+    function animate() {
+        requestAnimationFrame(animate);
+        const t = clock.getElapsedTime();
+
+        // Animate stars via shader uniforms + slight rotation
+        starsGroups.forEach((group, idx) => {
+            group.mesh.material.uniforms.uTime.value = t;
+            // Parallax-like slow rotation
+            group.mesh.rotation.y = t * 0.01 * (idx + 1);
+            group.mesh.rotation.x = Math.sin(t * 0.005) * 0.02 * (idx + 1);
+        });
+
+        // Slowly rotate nebulas
+        nebulas.forEach((n) => {
+            n.mesh.rotation.z += n.speed;
+        });
+        
+        // Gentle float for moon and glow
+        if (moonMesh) {
+            // Give the moon a slight organic breathing / floating motion
+            moonMesh.position.y += Math.sin(t * 1.5) * 0.002;
+            moonMesh.position.x += Math.cos(t * 1.2) * 0.001;
+            
+            glowMesh.position.y = moonMesh.position.y;
+            glowMesh.position.x = moonMesh.position.x;
+            
+            // Pulsate glow opacity smoothly
+            glowMesh.material.opacity = 0.7 + Math.sin(t * 2) * 0.15;
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    function onResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        if(moonMesh && glowMesh) {
+            const isMobile = window.innerWidth <= 768;
+            moonMesh.position.x = isMobile ? 0 : -5.5;
+            glowMesh.position.x = moonMesh.position.x;
+            
+            const newRadius = isMobile ? 3.5 : 5.5;
+            moonMesh.geometry.dispose();
+            moonMesh.geometry = new THREE.CircleGeometry(newRadius, 64);
+            
+            glowMesh.geometry.dispose();
+            glowMesh.geometry = new THREE.PlaneGeometry(newRadius * 3.5, newRadius * 3.5);
+        }
+    }
+
+    // INIT
+    preloadMedia();
+    initThree();
+
+    </script>
+</body>
+</html>
